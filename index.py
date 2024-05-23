@@ -15,8 +15,7 @@ class NewRecord(BaseModel):
 # Inicializar la aplicación FastAPI
 app = FastAPI()
 
-
-app = FastAPI()
+data = pd.read_csv('JugadoresMayorMenos.csv')
 
 # Configuración de CORS
 app.add_middleware(
@@ -39,6 +38,29 @@ def read_data():
         return data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+#Endpoint para eliminar un jugador
+@app.delete("/jugadores/{nombre}")
+def delete_item(nombre: str):
+    global data
+    # Verificar si el registro existe
+    if nombre not in data.Nombre.to_list():
+        print("Nombre no encontrado")
+        print(data.Nombre.to_list())
+        raise HTTPException(status_code=404, detail="Nombre no encontrado")
+    else:
+        # Eliminar el registro
+        print("si entra")
+        print(nombre)
+        data = data[data["Nombre"] != nombre]
+        # Guardar el DataFrame actualizado en el archivo CSV
+        data.to_csv('JugadoresMayorMenos.csv', index=False)
+    
+        return {"message": nombre + " eliminado exitosamente :D"}
+    
+    
+    
+    
 
 # Ruta para agregar un nuevo registro al CSV
 @app.post("/jugadores/")
@@ -78,13 +100,13 @@ async def actualizar_jugador(nombre: str, edad: int, equipo: str, rendimiento: f
     return {"mensaje": "Información del jugador actualizada correctamente"}
 
 # Endpoint para eliminar un jugador
-@app.delete("/jugadores/{nombre}", tags=["Jugadores"])
-async def eliminar_jugador(nombre: str):
-    jugador_index = data[data['Nombre'] == nombre].index
-    if len(jugador_index) == 0:
-        raise HTTPException(status_code=404, detail="Jugador no encontrado")
-    data.drop(jugador_index, inplace=True)
-    return {"mensaje": "Jugador eliminado correctamente"}
+# @app.delete("/jugadores/{nombre}", tags=["Jugadores"])
+# async def eliminar_jugador(nombre: str):
+#     jugador_index = data[data['Nombre'] == nombre].index
+#     if len(jugador_index) == 0:
+#         raise HTTPException(status_code=404, detail="Jugador no encontrado")
+#     data.drop(jugador_index, inplace=True)
+#     return {"mensaje": "Jugador eliminado correctamente"}
 
 # Endpoint para obtener jugadores por equipo
 @app.get("/equipos/{equipo}", tags=["Equipos"])
