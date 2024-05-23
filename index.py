@@ -10,13 +10,15 @@ class NewRecord(BaseModel):
     Equipo: str
     Rendimiento: int
     Potencial: int
-    valor_mercado: float
+    valor_mercado: float  
 
 # Inicializar la aplicación FastAPI
 app = FastAPI()
 
 
 app = FastAPI()
+
+data = pd.read_csv('JugadoresMayorMenos.csv')
 
 # Configuración de CORS
 app.add_middleware(
