@@ -74,7 +74,7 @@ async def actualizar_jugador(nombre: str, edad: int, equipo: str, rendimiento: f
     jugador_index = data[data['Nombre'] == nombre].index
     if len(jugador_index) == 0:
         raise HTTPException(status_code=404, detail="Jugador no encontrado")
-    data.loc[jugador_index, ['Edad', 'Equipo', 'Rendimiento', 'Potencial', 'valor_mercado']] = [Edad, Equipo, Rendimiento, Potencial, valor_mercado]
+    data.loc[jugador_index, ['Edad', 'Equipo', 'Rendimiento', 'Potencial', 'Valor en el mercado']] = [edad, equipo, rendimiento, potencial, valor_mercado]
     return {"mensaje": "Información del jugador actualizada correctamente"}
 
 # Endpoint para eliminar un jugador
