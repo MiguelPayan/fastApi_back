@@ -9,7 +9,7 @@ class NewRecord(BaseModel):
     Edad: int
     Equipo: str
     Rendimiento: int
-    potencial: int
+    Potencial: int
     valor_mercado: float
 
 # Inicializar la aplicación FastAPI
