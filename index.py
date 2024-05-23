@@ -5,14 +5,17 @@ import pandas as pd
 
 # Modelo Pydantic para validar el nuevo registro
 class NewRecord(BaseModel):
-    nombre: str
-    edad: int
-    equipo: str
-    rendimiento: int
+    Nombre: str
+    Edad: int
+    Equipo: str
+    Rendimiento: int
     potencial: int
     valor_mercado: float
 
 # Inicializar la aplicación FastAPI
+app = FastAPI()
+
+
 app = FastAPI()
 
 # Configuración de CORS
@@ -23,7 +26,6 @@ app.add_middleware(
     allow_methods=["*"],  # Permitir todos los métodos (GET, POST, etc.)
     allow_headers=["*"],  # Permitir todos los encabezados
 )
-
 # Endpoint para obtener todos los jugadores
 @app.get("/jugadores")
 def read_data():
@@ -35,25 +37,6 @@ def read_data():
         data = data.to_dict(orient="records")
         
         return data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Ruta para agregar un nuevo registro al CSV
-@app.post("/jugadores/")
-def add_record(record: NewRecord):
-    try:
-        data = pd.read_csv('JugadoresMayorMenos.csv')
-        
-        # Convertir el nuevo registro a un DataFrame
-        new_data = pd.DataFrame([record.dict()])
-        
-        # Concatenar el DataFrame existente con el nuevo registro
-        data = pd.concat([data, new_data], ignore_index=True)
-        
-        # Guardar el DataFrame actualizado de nuevo en el archivo CSV
-        data.to_csv("JugadoresMayorMenos.csv", index=False)
-        
-        return {"message": "Jugador agregado exitosamente!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
