@@ -5,14 +5,17 @@ import pandas as pd
 
 # Modelo Pydantic para validar el nuevo registro
 class NewRecord(BaseModel):
-    nombre: str
-    edad: int
-    equipo: str
-    rendimiento: int
+    Nombre: str
+    Edad: int
+    Equipo: str
+    Rendimiento: int
     potencial: int
     valor_mercado: float
 
 # Inicializar la aplicación FastAPI
+app = FastAPI()
+
+
 app = FastAPI()
 
 # Configuración de CORS
@@ -23,7 +26,6 @@ app.add_middleware(
     allow_methods=["*"],  # Permitir todos los métodos (GET, POST, etc.)
     allow_headers=["*"],  # Permitir todos los encabezados
 )
-
 # Endpoint para obtener todos los jugadores
 @app.get("/jugadores")
 def read_data():
@@ -42,6 +44,7 @@ def read_data():
 @app.post("/jugadores/")
 def add_record(record: NewRecord):
     try:
+
         data = pd.read_csv('JugadoresMayorMenos.csv')
         
         # Convertir el nuevo registro a un DataFrame
