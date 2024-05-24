@@ -25,6 +25,19 @@ app.add_middleware(
     allow_methods=["*"],  # Permitir todos los métodos (GET, POST, etc.)
     allow_headers=["*"],  # Permitir todos los encabezados
 )
+# Endpoint para reestablecer el df
+@app.get("/reestablecer")
+def reestablecer():
+    try:
+        # Leer el archivo CSV modificado
+        data = pd.read_csv('JugadoresMayorMenosORIGINAL.csv')
+
+        data.to_csv('JugadoresMayorMenos.csv', index=False)
+
+        return {"message": "Dataframe Reestablecido Correctamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Endpoint para obtener todos los jugadores
 @app.get("/jugadores")
 def read_data():
