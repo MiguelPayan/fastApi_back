@@ -9,8 +9,8 @@ class NewRecord(BaseModel):
     Edad: int
     Equipo: str
     Rendimiento: int
-    potencial: int
-    valor_mercado: float
+    Potencial: int
+    valor_mercado: float  
 
 # Inicializar la aplicación FastAPI
 app = FastAPI()
@@ -79,7 +79,6 @@ def delete_item(nombre: str):
 @app.post("/jugadores/")
 def add_record(record: NewRecord):
     try:
-
         data = pd.read_csv('JugadoresMayorMenos.csv')
         
         # Convertir el nuevo registro a un DataFrame
@@ -98,19 +97,28 @@ def add_record(record: NewRecord):
 # Endpoint para obtener información sobre un jugador específico por nombre
 @app.get("/jugadores/{nombre}", tags=["Jugadores"])
 async def get_jugador(nombre: str):
-    jugador = data[data['Nombre'] == nombre]
-    if jugador.empty:
-        raise HTTPException(status_code=404, detail="Jugador no encontrado")
-    return jugador.to_dict(orient="records")[0]
+    try:
+        data = pd.read_csv('JugadoresMayorMenos.csv')
+        jugador = data[data['Nombre'] == nombre]
+        if jugador.empty:
+            raise HTTPException(status_code=404, detail="Jugador no encontrado")
+        return jugador.to_dict(orient="records")[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint para actualizar la información de un jugador
 @app.put("/jugadores/{nombre}", tags=["Jugadores"])
 async def actualizar_jugador(nombre: str, edad: int, equipo: str, rendimiento: float, potencial: float, valor_mercado: float):
-    jugador_index = data[data['Nombre'] == nombre].index
-    if len(jugador_index) == 0:
-        raise HTTPException(status_code=404, detail="Jugador no encontrado")
-    data.loc[jugador_index, ['Edad', 'Equipo', 'Rendimiento', 'Potencial', 'Valor en el mercado']] = [edad, equipo, rendimiento, potencial, valor_mercado]
-    return {"mensaje": "Información del jugador actualizada correctamente"}
+    try:
+        data = pd.read_csv('JugadoresMayorMenos.csv')
+        jugador_index = data[data['Nombre'] == nombre].index
+        if len(jugador_index) == 0:
+            raise HTTPException(status_code=404, detail="Jugador no encontrado")
+        data.loc[jugador_index, ['Edad', 'Equipo', 'Rendimiento', 'Potencial', 'Valor en el mercado']] = [edad, equipo, rendimiento, potencial, valor_mercado]
+        data.to_csv("JugadoresMayorMenos.csv", index=False)
+        return {"mensaje": "Información del jugador actualizada correctamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint para eliminar un jugador
 # @app.delete("/jugadores/{nombre}", tags=["Jugadores"])
