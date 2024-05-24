@@ -30,6 +30,7 @@ app.add_middleware(
 def reestablecer():
     try:
         # Leer el archivo CSV modificado
+        global data 
         data = pd.read_csv('JugadoresMayorMenosORIGINAL.csv')
 
         data.to_csv('JugadoresMayorMenos.csv', index=False)
