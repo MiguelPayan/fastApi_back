@@ -72,7 +72,18 @@ def delete_item(nombre: str):
     
         return {"message": nombre + " eliminado exitosamente :D"}
     
+    # Endpoint para buscar jugadores por rango de edad
+@app.get("/jugadores/edad/")
+def buscar_jugadores_por_edad(edad_min: int, edad_max: int):
+    # Filtrar jugadores por rango de edad
+    jugadores_en_rango = data[(data['Edad'] >= edad_min) & (data['Edad'] <= edad_max)]
+    if jugadores_en_rango.empty:
+        raise HTTPException(status_code=404, detail="No se encontraron jugadores en el rango de edad especificado")
     
+    # Convertir el DataFrame resultante a una lista de diccionarios
+    jugadores_en_rango_dict = jugadores_en_rango.to_dict(orient="records")
+    
+    return jugadores_en_rango_dict
     
     
 
@@ -136,12 +147,4 @@ async def get_jugadores_por_equipo(equipo: str):
     jugadores = data[data['Equipo'] == equipo]
     if jugadores.empty:
         raise HTTPException(status_code=404, detail="Equipo no encontrado")
-    return jugadores.to_dict(orient="records")
-
-# Endpoint para obtener jugadores por rango de edad
-@app.get("/jugadores/edad/", tags=["Jugadores"])
-async def get_jugadores_por_edad(edad_min: int, edad_max: int):
-    jugadores = data[(data['Edad'] >= edad_min) & (data['Edad'] <= edad_max)]
-    if jugadores.empty:
-        raise HTTPException(status_code=404, detail="No se encontraron jugadores en el rango de edad especificado")
     return jugadores.to_dict(orient="records")
