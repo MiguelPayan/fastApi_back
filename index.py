@@ -46,9 +46,9 @@ def read_data():
         global data
         
         # Convertir el DataFrame a una lista de diccionarios
-        data = data.to_dict(orient="records")
+        players = data.to_dict(orient="records")
         
-        return data
+        return players
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
