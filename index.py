@@ -43,7 +43,7 @@ def reestablecer():
 def read_data():
     try:
         # Leer el archivo CSV
-        data = pd.read_csv('JugadoresMayorMenos.csv')
+        global data
         
         # Convertir el DataFrame a una lista de diccionarios
         data = data.to_dict(orient="records")
