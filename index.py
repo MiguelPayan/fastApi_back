@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
@@ -15,7 +16,6 @@ class NewRecord(BaseModel):
 # Inicializar la aplicación FastAPI
 app = FastAPI()
 
-# Leer el archivo CSV
 data = pd.read_csv('JugadoresMayorMenos.csv')
 
 # Configuración de CORS
@@ -26,16 +26,14 @@ app.add_middleware(
     allow_methods=["*"],  # Permitir todos los métodos (GET, POST, etc.)
     allow_headers=["*"],  # Permitir todos los encabezados
 )
-
-# Endpoint para reestablecer el DataFrame
+# Endpoint para reestablecer el df
 @app.get("/reestablecer")
 def reestablecer():
     try:
-        # Leer el archivo CSV original
+        # Leer el archivo CSV modificado
         global data 
         data = pd.read_csv('JugadoresMayorMenosORIGINAL.csv')
 
-        # Guardar el DataFrame reestablecido en el archivo CSV
         data.to_csv('JugadoresMayorMenos.csv', index=False)
 
         return {"message": "Dataframe Reestablecido Correctamente"}
@@ -46,86 +44,62 @@ def reestablecer():
 @app.get("/jugadores")
 def read_data():
     try:
+        # Leer el archivo CSV
+        global data
+        
         # Convertir el DataFrame a una lista de diccionarios
         players = data.to_dict(orient="records")
+        
         return players
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para eliminar un jugador
+#Endpoint para eliminar un jugador
 @app.delete("/jugadores/{nombre}")
 def delete_item(nombre: str):
     global data
     # Verificar si el registro existe
     if nombre not in data.Nombre.to_list():
+        print("Nombre no encontrado")
+        print(data.Nombre.to_list())
         raise HTTPException(status_code=404, detail="Nombre no encontrado")
     else:
         # Eliminar el registro
+        print("si entra")
+        print(nombre)
         data = data[data["Nombre"] != nombre]
         # Guardar el DataFrame actualizado en el archivo CSV
         data.to_csv('JugadoresMayorMenos.csv', index=False)
-        return {"message": nombre + " eliminado exitosamente"}
-
-# Endpoint para buscar jugadores por rango de edad
-@app.get("/jugadores/edad/")
-def buscar_jugadores_por_rango_de_edad(edad_min: int, edad_max: int):
-    try:
-        # Filtrar jugadores por rango de edad
-        jugadores_en_rango = data[(data['Edad'] >= edad_min) & (data['Edad'] <= edad_max)]
-        if jugadores_en_rango.empty:
-            raise HTTPException(status_code=404, detail="No se encontraron jugadores en el rango de edad especificado")
-        
-        # Convertir el DataFrame resultante a una lista de diccionarios
-        jugadores_en_rango_dict = jugadores_en_rango.to_dict(orient="records")
-        
-        return jugadores_en_rango_dict
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    
+        return {"message": nombre + " eliminado exitosamente :D"}
+    
+    
+    
+    
 
 # Ruta para agregar un nuevo registro al CSV
 @app.post("/jugadores/")
-def add_record(record: NewRecord):
+def add_record(record: NewRecord): 
     try:
-        global data
-        # Convertir el nuevo registro a un DataFrame
-        new_data = pd.DataFrame([record.dict()])
-        # Concatenar el DataFrame existente con el nuevo registro
-        data = pd.concat([data, new_data], ignore_index=True)
-        # Guardar el DataFrame actualizado en el archivo CSV
-        data.to_csv("JugadoresMayorMenos.csv", index=False)
-        return {"message": "Jugador agregado exitosamente"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        global data 
 
-# Endpoint para obtener información sobre un jugador específico por nombre
-@app.get("/jugadores/{nombre}", tags=["Jugadores"])
-async def get_jugador(nombre: str):
-    try:
-        jugador = data[data['Nombre'] == nombre]
-        if jugador.empty:
-            raise HTTPException(status_code=404, detail="Jugador no encontrado")
-        return jugador.to_dict(orient="records")[0]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        #data = pd.DataFrame(data)
 
-# Endpoint para actualizar la información de un jugador
-@app.put("/jugadores/{nombre}", tags=["Jugadores"])
-async def actualizar_jugador(nombre: str, edad: int, equipo: str, rendimiento: float, potencial: float, valor_mercado: float):
-    try:
-        jugador_index = data[data['Nombre'] == nombre].index
-        if len(jugador_index) == 0:
-            raise HTTPException(status_code=404, detail="Jugador no encontrado")
-        data.loc[jugador_index, ['Edad', 'Equipo', 'Rendimiento', 'Potencial', 'valor_mercado']] = [edad, equipo, rendimiento, potencial, valor_mercado]
-        data.to_csv("JugadoresMayorMenos.csv", index=False)
-        return {"mensaje": "Información del jugador actualizada correctamente"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        nuevo_registro = {
+            "Nombre": record.Nombre,
+            "Edad": record.Edad,
+            "Equipo": record.Equipo,
+            "Rendimiento": record.Rendimiento,
+            "Potencial": record.Potencial,
+            "Valor en el mercado": record.valor_mercado  
+        }
 
-# Endpoint para obtener jugadores por equipo
-@app.get("/equipos/{equipo}", tags=["Equipos"])
-async def get_jugadores_por_equipo(equipo: str):
-    jugadores = data[data['Equipo'] == equipo]
-    if jugadores.empty:
-        raise HTTPException(status_code=404, detail="Equipo no encontrado")
-    return jugadores.to_dict(orient="records")
+        data.loc[len(data)] = nuevo_registro
+        data.to_csv('JugadoresMayorMenos.csv', index=False)
+        print(record)
+        
+        
+        return {"message": "Jugador agregado exitosamente!"}
+    except Exception as e:
+        print(record)
+        raise HTTPException(status_code=500, detail=str(e))
