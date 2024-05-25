@@ -74,17 +74,20 @@ def delete_item(nombre: str):
     
     # Endpoint para buscar jugadores por rango de edad
 @app.get("/jugadores/edad/")
-def buscar_jugadores_por_edad(edad_min: int, edad_max: int):
-    # Filtrar jugadores por rango de edad
-    jugadores_en_rango = data[(data['Edad'] >= edad_min) & (data['Edad'] <= edad_max)]
-    if jugadores_en_rango.empty:
-        raise HTTPException(status_code=404, detail="No se encontraron jugadores en el rango de edad especificado")
-    
-    # Convertir el DataFrame resultante a una lista de diccionarios
-    jugadores_en_rango_dict = jugadores_en_rango.to_dict(orient="records")
-    
-    return jugadores_en_rango_dict
-    
+def buscar_jugadores_por_rango_de_edad(edad_min: int, edad_max: int):
+    try:
+        # Filtrar jugadores por rango de edad
+        jugadores_en_rango = data[(data['Edad'] >= edad_min) & (data['Edad'] <= edad_max)]
+        if jugadores_en_rango.empty:
+            raise HTTPException(status_code=404, detail="No se encontraron jugadores en el rango de edad especificado")
+        
+        # Convertir el DataFrame resultante a una lista de diccionarios
+        jugadores_en_rango_dict = jugadores_en_rango.to_dict(orient="records")
+        
+        return jugadores_en_rango_dict
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
 
 # Ruta para agregar un nuevo registro al CSV
