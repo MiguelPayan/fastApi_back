@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException
-from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
@@ -15,6 +14,7 @@ class NewRecord(BaseModel):
 
 # Modelo Pydantic para la actualización del registro
 class UpdateRecord(BaseModel):
+    Nombre: str = None
     Edad: int = None
     Equipo: str = None
     Rendimiento: int = None
@@ -117,6 +117,8 @@ def update_record(nombre: str, updated_record: UpdateRecord):
         index = data[data["Nombre"] == nombre].index[0]
         
         # Actualizar los campos proporcionados en el registro existente
+        if updated_record.Nombre is not None:
+            data.at[index, "Nombre"] = updated_record.Nombre
         if updated_record.Edad is not None:
             data.at[index, "Edad"] = updated_record.Edad
         if updated_record.Equipo is not None:
