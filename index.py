@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException
-from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
@@ -12,6 +11,15 @@ class NewRecord(BaseModel):
     Rendimiento: int
     Potencial: int
     valor_mercado: float  
+
+# Modelo Pydantic para la actualización del registro
+class UpdateRecord(BaseModel):
+    Nombre: str = None
+    Edad: int = None
+    Equipo: str = None
+    Rendimiento: int = None
+    Potencial: int = None
+    valor_mercado: float = None
 
 # Inicializar la aplicación FastAPI
 app = FastAPI()
@@ -26,6 +34,7 @@ app.add_middleware(
     allow_methods=["*"],  # Permitir todos los métodos (GET, POST, etc.)
     allow_headers=["*"],  # Permitir todos los encabezados
 )
+
 # Endpoint para reestablecer el df
 @app.get("/reestablecer")
 def reestablecer():
@@ -54,7 +63,7 @@ def read_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-#Endpoint para eliminar un jugador
+# Endpoint para eliminar un jugador
 @app.delete("/jugadores/{nombre}")
 def delete_item(nombre: str):
     global data
@@ -72,18 +81,12 @@ def delete_item(nombre: str):
         data.to_csv('JugadoresMayorMenos.csv', index=False)
     
         return {"message": nombre + " eliminado exitosamente :D"}
-    
-    
-    
-    
 
 # Ruta para agregar un nuevo registro al CSV
 @app.post("/jugadores/")
 def add_record(record: NewRecord): 
     try:
         global data 
-
-        #data = pd.DataFrame(data)
 
         nuevo_registro = {
             "Nombre": record.Nombre,
@@ -102,7 +105,6 @@ def add_record(record: NewRecord):
         data.to_csv('JugadoresMayorMenos.csv', index=False)
         data = pd.read_csv('JugadoresMayorMenos.csv')
         print(record)
-        
         
         return {"message": "Jugador agregado exitosamente!"}
     except Exception as e:
