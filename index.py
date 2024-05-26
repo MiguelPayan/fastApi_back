@@ -97,8 +97,13 @@ def add_record(record: NewRecord):
             "Valor en el mercado": record.valor_mercado  
         }
 
-        data.loc[len(data)] = nuevo_registro
+        data = pd.DataFrame(data)
+        nuevo_registro = pd.Series(nuevo_registro)
+        nuevo_registro = pd.DataFrame(nuevo_registro,index=None)
+        data = pd.concat([data,nuevo_registro.transpose()],ignore_index=True)
+
         data.to_csv('JugadoresMayorMenos.csv', index=False)
+        data = pd.read_csv('JugadoresMayorMenos.csv')
         print(record)
         
         return {"message": "Jugador agregado exitosamente!"}
@@ -106,32 +111,30 @@ def add_record(record: NewRecord):
         print(record)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Ruta para actualizar un registro existente en el CSV
+#Endpoint para modificar un jugador
 @app.put("/jugadores/{nombre}")
-def update_record(nombre: str, updated_record: UpdateRecord):
-    try:
-        global data
-        if nombre not in data.Nombre.to_list():
-            raise HTTPException(status_code=404, detail="Nombre no encontrado")
+async def actualizar_jugador(nombre: str, record: NewRecord):
+    global data
 
-        index = data[data["Nombre"] == nombre].index[0]
-        
-        # Actualizar los campos proporcionados en el registro existente
-        if updated_record.Nombre is not None:
-            data.at[index, "Nombre"] = updated_record.Nombre
-        if updated_record.Edad is not None:
-            data.at[index, "Edad"] = updated_record.Edad
-        if updated_record.Equipo is not None:
-            data.at[index, "Equipo"] = updated_record.Equipo
-        if updated_record.Rendimiento is not None:
-            data.at[index, "Rendimiento"] = updated_record.Rendimiento
-        if updated_record.Potencial is not None:
-            data.at[index, "Potencial"] = updated_record.Potencial
-        if updated_record.valor_mercado is not None:
-            data.at[index, "Valor en el mercado"] = updated_record.valor_mercado
-
+    nuevo_registro = {
+            "Nombre": record.Nombre,
+            "Edad": record.Edad,
+            "Equipo": record.Equipo,
+            "Rendimiento": record.Rendimiento,
+            "Potencial": record.Potencial,
+            "Valor en el mercado": record.valor_mercado  
+        }
+    nombres = data["Nombre"]
+    nombres = nombres.to_numpy()
+    
+    if nombre in nombres:
+        data.loc[data["Nombre"] == nombre, 'Nombre'] = record.Nombre
+        data.loc[data["Nombre"] == nombre, 'Edad'] = record.Edad
+        data.loc[data["Nombre"] == nombre, 'Equipo'] = record.Equipo 
+        data.loc[data["Nombre"] == nombre, 'Rendimiento'] = record.Rendimiento
+        data.loc[data["Nombre"] == nombre, 'Potencial'] = record.Potencial
+        data.loc[data["Nombre"] == nombre, 'Valor en el mercado'] = record.valor_mercado
         data.to_csv('JugadoresMayorMenos.csv', index=False)
-        
-        return {"message": "Jugador actualizado exitosamente!"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"message": "Jugador actualizado actualizado", "user": record}
+    else:
+        raise HTTPException(status_code=404, detail=nombre + "  no fue encontrado")
