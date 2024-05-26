@@ -13,6 +13,14 @@ class NewRecord(BaseModel):
     Potencial: int
     valor_mercado: float  
 
+# Modelo Pydantic para la actualización del registro
+class UpdateRecord(BaseModel):
+    Edad: int = None
+    Equipo: str = None
+    Rendimiento: int = None
+    Potencial: int = None
+    valor_mercado: float = None
+
 # Inicializar la aplicación FastAPI
 app = FastAPI()
 
@@ -26,6 +34,7 @@ app.add_middleware(
     allow_methods=["*"],  # Permitir todos los métodos (GET, POST, etc.)
     allow_headers=["*"],  # Permitir todos los encabezados
 )
+
 # Endpoint para reestablecer el df
 @app.get("/reestablecer")
 def reestablecer():
@@ -54,7 +63,7 @@ def read_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-#Endpoint para eliminar un jugador
+# Endpoint para eliminar un jugador
 @app.delete("/jugadores/{nombre}")
 def delete_item(nombre: str):
     global data
@@ -72,18 +81,12 @@ def delete_item(nombre: str):
         data.to_csv('JugadoresMayorMenos.csv', index=False)
     
         return {"message": nombre + " eliminado exitosamente :D"}
-    
-    
-    
-    
 
 # Ruta para agregar un nuevo registro al CSV
 @app.post("/jugadores/")
 def add_record(record: NewRecord): 
     try:
         global data 
-
-        #data = pd.DataFrame(data)
 
         nuevo_registro = {
             "Nombre": record.Nombre,
@@ -98,9 +101,35 @@ def add_record(record: NewRecord):
         data.to_csv('JugadoresMayorMenos.csv', index=False)
         print(record)
         
-        
         return {"message": "Jugador agregado exitosamente!"}
     except Exception as e:
         print(record)
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para actualizar un registro existente en el CSV
+@app.put("/jugadores/{nombre}")
+def update_record(nombre: str, updated_record: UpdateRecord):
+    try:
+        global data
+        if nombre not in data.Nombre.to_list():
+            raise HTTPException(status_code=404, detail="Nombre no encontrado")
+
+        index = data[data["Nombre"] == nombre].index[0]
+        
+        # Actualizar los campos proporcionados en el registro existente
+        if updated_record.Edad is not None:
+            data.at[index, "Edad"] = updated_record.Edad
+        if updated_record.Equipo is not None:
+            data.at[index, "Equipo"] = updated_record.Equipo
+        if updated_record.Rendimiento is not None:
+            data.at[index, "Rendimiento"] = updated_record.Rendimiento
+        if updated_record.Potencial is not None:
+            data.at[index, "Potencial"] = updated_record.Potencial
+        if updated_record.valor_mercado is not None:
+            data.at[index, "Valor en el mercado"] = updated_record.valor_mercado
+
+        data.to_csv('JugadoresMayorMenos.csv', index=False)
+        
+        return {"message": "Jugador actualizado exitosamente!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
