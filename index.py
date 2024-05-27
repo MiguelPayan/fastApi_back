@@ -113,28 +113,31 @@ def add_record(record: NewRecord):
 
 #Endpoint para modificar un jugador
 @app.put("/jugadores/{nombre}")
-async def actualizar_jugador(nombre: str, record: NewRecord):
+async def actualizar_jugador(nombre: str, record: UpdateRecord):
     global data
 
-    nuevo_registro = {
-            "Nombre": record.Nombre,
-            "Edad": record.Edad,
-            "Equipo": record.Equipo,
-            "Rendimiento": record.Rendimiento,
-            "Potencial": record.Potencial,
-            "Valor en el mercado": record.valor_mercado  
-        }
-    nombres = data["Nombre"]
-    nombres = nombres.to_numpy()
-    
-    if nombre in nombres:
-        data.loc[data["Nombre"] == nombre, 'Nombre'] = record.Nombre
-        data.loc[data["Nombre"] == nombre, 'Edad'] = record.Edad
-        data.loc[data["Nombre"] == nombre, 'Equipo'] = record.Equipo 
-        data.loc[data["Nombre"] == nombre, 'Rendimiento'] = record.Rendimiento
-        data.loc[data["Nombre"] == nombre, 'Potencial'] = record.Potencial
-        data.loc[data["Nombre"] == nombre, 'Valor en el mercado'] = record.valor_mercado
-        data.to_csv('JugadoresMayorMenos.csv', index=False)
-        return {"message": "Jugador actualizado actualizado", "user": record}
-    else:
-        raise HTTPException(status_code=404, detail=nombre + "  no fue encontrado")
+    # Verificar si el registro existe
+    if nombre not in data.Nombre.to_list():
+        raise HTTPException(status_code=404, detail="Nombre no encontrado")
+
+    # Obtener el índice del jugador a actualizar
+    index = data[data["Nombre"] == nombre].index[0]
+
+    # Actualizar los campos si se proporcionan
+    if record.Nombre is not None:
+        data.at[index, "Nombre"] = record.Nombre
+    if record.Edad is not None:
+        data.at[index, "Edad"] = record.Edad
+    if record.Equipo is not None:
+        data.at[index, "Equipo"] = record.Equipo
+    if record.Rendimiento is not None:
+        data.at[index, "Rendimiento"] = record.Rendimiento
+    if record.Potencial is not None:
+        data.at[index, "Potencial"] = record.Potencial
+    if record.valor_mercado is not None:
+        data.at[index, "Valor en el mercado"] = record.valor_mercado
+
+    # Guardar el DataFrame actualizado en el archivo CSV
+    data.to_csv('JugadoresMayorMenos.csv', index=False)
+
+    return {"message": "Jugador actualizado correctamente", "user": record}
